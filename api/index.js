@@ -16,7 +16,7 @@ dotenv.config();
 
 app.post('/api/load-events', async (req, res) => {
   try {
-    const calIDPath = 'calendar.txt';
+    const calIDPath = 'public/calendar.txt';
     const credentials = require('../credentials.json');
     const tokenPath = 'token.json';
     await fs.promises.writeFile(calIDPath, req.body.calID);
@@ -56,6 +56,6 @@ app.listen(port, () => {
 });
 
 app.get("/api/calendarId", (req, res) => {
-  calendarId = fs.readFileSync("calendar.txt", { encoding: 'utf8', flag: 'r' });
+  calendarId = fs.readFileSync("public/calendar.txt", { encoding: 'utf8', flag: 'r' });
   res.json({calendarId});
 })
