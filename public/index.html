@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Studio52 Google Plugin</title>
+</head>
+
+<body>
+
+    <div class="container mt-5">
+        <h1 class="mb-3">Studio52 Google Plugin</h1>
+        <p>Questa applicazione si collega ad un calendario Google e carica gli eventi di Studio52. Ad ogni richiesta gli eventi presenti nel calendario vengono cancellati, quindi <b>non utilizzare un calendario Google in cui inserisci eventi manualmente</b>.</p>
+        <form id="myForm">
+            <div class="form-group">
+                <label for="textInput">ID del calendario:</label>
+                <input type="text" class="form-control" id="textInput" placeholder="Enter text">
+            </div>
+            <button type="submit" class="btn btn-primary">Aggiorna eventi</button>
+        </form>
+        <p id="adv" class="mt-3">
+        </p>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        document.querySelector("form").addEventListener("submit", (e) => {
+            e.preventDefault();
+            document.querySelector("#adv").textContent = "Processo in corso... Attendi prima di chiudere la pagina."
+            const inputValue = document.getElementById('textInput').value;
+            fetch("/api/load-events", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    calID: inputValue
+                })
+            }).then(res => res.json()).then(data => {
+                console.log(data)
+                document.querySelector("#adv").textContent = data.text;
+            })
+        })
+
+        fetch("/api/calendarId").then(res => res.json()).then(data => {
+            document.getElementById('textInput').value = data.calendarId;
+        })
+    </script>
+
+</body>
+
+</html>
