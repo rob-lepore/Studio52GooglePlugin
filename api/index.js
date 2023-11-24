@@ -1,10 +1,12 @@
 const express = require('express');
 const fs = require('fs');
 const { OAuth2Client } = require('google-auth-library');
-const { calendar } = require('googleapis/build/src/apis/calendar');
 const { loadEvents } = require('../loadEvents');
 const { getNewToken } = require('../getNewToken');
 const dotenv = require("dotenv")
+const axios = require('axios');
+const mongoose = require("mongoose");
+
 
 const app = express();
 const port = 3000; // Use the port you prefer
@@ -14,13 +16,33 @@ app.use(express.static('public'));
 
 dotenv.config();
 
+const mongoURI = `mongodb+srv://robertoleporerl:${process.env.DB_PASSWORD}@codes.ruestiq.mongodb.net/?retryWrites=true&w=majority`;
+mongoose.connect(mongoURI, {});
+const db = mongoose.connection;
+
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+db.once('open', () => {
+  console.log('Connected to MongoDB');
+});
+
+
+app.listen(port, () => {
+  console.log(`Server is running at http://localhost:${port}`);
+});
+
+const Calendar = require("../models/calendar");
+
+
+
 app.post('/api/load-events', async (req, res) => {
   try {
-    const calIDPath = 'public/calendar.txt';
     const credentials = require('../credentials.json');
     const tokenPath = 'token.json';
-    await fs.promises.writeFile(calIDPath, req.body.calID);
     const calID = req.body.calID;
+
+    let calendars = await Calendar.find({})
+    calendars[0].code = calID;
+    calendars[0].save();
 
     const { redirect_uris } = credentials.installed;
     client_secret = process.env.CLIENT_SECRET;
@@ -51,11 +73,7 @@ app.post('/api/load-events', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is running at http://localhost:${port}`);
-});
-
-app.get("/api/calendarId", (req, res) => {
-  calendarId = fs.readFileSync("public/calendar.txt", { encoding: 'utf8', flag: 'r' });
-  res.json({calendarId});
+app.get("/api/calendarId", async (req, res) => {
+  const calendars = await Calendar.find({})
+  res.json({calendarId: calendars[0].code});
 })
